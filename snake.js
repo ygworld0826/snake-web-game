@@ -8,6 +8,7 @@ let direction = { x: 0, y: 0 };
 let food = { x: 5, y: 5 };
 let gameOver = false;
 let score = 0;
+let started = false;
 
 function draw() {
     ctx.fillStyle = '#111';
@@ -27,17 +28,30 @@ function draw() {
     ctx.fillStyle = '#fff';
     ctx.font = '18px Arial';
     ctx.fillText('Score: ' + score, 10, 20);
+
+    if (!started) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('스페이스바를 눌러 시작하세요', canvas.width/2, canvas.height/2);
+        ctx.textAlign = 'start';
+    }
+    if (gameOver) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('게임 오버! 스페이스바로 재시작', canvas.width/2, canvas.height/2);
+        ctx.textAlign = 'start';
+    }
 }
 
 function update() {
-    if (gameOver) return;
+    if (!started || gameOver) return;
     const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
 
     // Wall collision
     if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
         gameOver = true;
-        alert('Game Over! Your score: ' + score);
-        document.location.reload();
         return;
     }
 
@@ -45,8 +59,6 @@ function update() {
     for (let part of snake) {
         if (head.x === part.x && head.y === part.y) {
             gameOver = true;
-            alert('Game Over! Your score: ' + score);
-            document.location.reload();
             return;
         }
     }
@@ -76,20 +88,36 @@ function placeFood() {
     }
 }
 
+function resetGame() {
+    snake = [{ x: 10, y: 10 }];
+    direction = { x: 0, y: 0 };
+    food = { x: 5, y: 5 };
+    gameOver = false;
+    score = 0;
+    started = false;
+}
+
 function gameLoop() {
     update();
     draw();
-    if (!gameOver) {
-        setTimeout(gameLoop, 100);
-    }
+    setTimeout(gameLoop, 100);
 }
 
 document.addEventListener('keydown', e => {
-    switch (e.key) {
-        case 'ArrowUp': if (direction.y !== 1) direction = { x: 0, y: -1 }; break;
-        case 'ArrowDown': if (direction.y !== -1) direction = { x: 0, y: 1 }; break;
-        case 'ArrowLeft': if (direction.x !== 1) direction = { x: -1, y: 0 }; break;
-        case 'ArrowRight': if (direction.x !== -1) direction = { x: 1, y: 0 }; break;
+    if (!started && e.code === 'Space') {
+        started = true;
+        direction = { x: 1, y: 0 };
+    } else if (gameOver && e.code === 'Space') {
+        resetGame();
+        started = true;
+        direction = { x: 1, y: 0 };
+    } else if (started && !gameOver) {
+        switch (e.key) {
+            case 'ArrowUp': if (direction.y !== 1) direction = { x: 0, y: -1 }; break;
+            case 'ArrowDown': if (direction.y !== -1) direction = { x: 0, y: 1 }; break;
+            case 'ArrowLeft': if (direction.x !== 1) direction = { x: -1, y: 0 }; break;
+            case 'ArrowRight': if (direction.x !== -1) direction = { x: 1, y: 0 }; break;
+        }
     }
 });
 
